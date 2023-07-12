@@ -1,5 +1,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 
 -- Definição da entidade
 entity BatalhaNaval is
@@ -10,6 +11,8 @@ entity BatalhaNaval is
 		
         -- Saídas
         ledR: out std_logic_vector(9 downto 0);
+        HEX0, HEX1, HEX2, HEX3: out std_logic_vector(6 downto 0);
+
         ledG: out std_logic_vector(7 downto 0)
         
     
@@ -21,7 +24,7 @@ end entity BatalhaNaval;
 architecture mainBatalhaNaval of BatalhaNaval is
         type Navio_Type is (navio_1,navio_2,navio_3a,navio_3b,disp);
         signal navio_atual: Navio_Type := navio_1;
-       -- signal display : integer range 0 to 16 ;
+        signal display : integer range 0 to 16 ;
     
          -- Sinais internos
     signal navio_pos :integer range 0 to 16;
@@ -181,27 +184,27 @@ architecture mainBatalhaNaval of BatalhaNaval is
         end process;
 
         -- processo para comparar e disparar
-        process(key(3))
+        process(navio_1_pos, navio_2_pos, navio_3_pos1, navio_3_pos2, key(3))
             variable contador : integer range 0 to 2 := 0;
             begin
                 --ledG(7) <= '0';
-                --ledR(0) <= '0';
+             --   ledR(0) <= '0';
                 if key(3)'event and key(3) = '1' then
                     if num_disparos = 1 then 
                         if pos_alvo = navio_1_pos  then
-                            ledG(7) <= '1';
+                            ledG(7) <= '0';
                             --num_disparos <= num_disparos - 1;
                             num_vitorias <= num_vitorias + 1;
                             --navio_1_pos <= 16;
                         elsif pos_alvo = navio_2_pos  then
-                            ledG(7) <= '1';
+                            ledG(7) <= '0';
                             --num_disparos <= num_disparos - 1;
                             num_vitorias <= num_vitorias + 1;
                             --navio_2_pos <= 16;
                         elsif pos_alvo = navio_3_pos1 or pos_alvo = navio_3_pos2 then
                             contador := contador + 1;
                             if contador = 2 then
-                                ledG(7) <= '1';
+                                ledG(7) <= '0';
                                 --num_disparos <= num_disparos - 1;
                                 num_vitorias <= num_vitorias + 1;
                             -- navio_3_pos1 <= 16;
@@ -213,19 +216,19 @@ architecture mainBatalhaNaval of BatalhaNaval is
                         end if;
                     else 
                         if pos_alvo = navio_1_pos  then
-                            ledG(7) <= '1';
+                            ledG(7) <= '0';
                             num_disparos <= num_disparos - 1;
                             num_vitorias <= num_vitorias + 1;
                             --navio_1_pos <= 16;
                         elsif pos_alvo = navio_2_pos  then
-                            ledG(7) <= '1';
+                            ledG(7) <= '0';
                             num_disparos <= num_disparos - 1;
                             num_vitorias <= num_vitorias + 1;
                             --navio_2_pos <= 16;
                         elsif pos_alvo = navio_3_pos1 or pos_alvo = navio_3_pos2 then
                             contador := contador + 1;
                             if contador = 2 then
-                                ledG(7) <= '1';
+                                ledG(7) <= '0';
                                 num_disparos <= num_disparos - 1;
                                 num_vitorias <= num_vitorias + 1;
                             -- navio_3_pos1 <= 16;
@@ -239,30 +242,101 @@ architecture mainBatalhaNaval of BatalhaNaval is
                 end if;
         end process;
     
-        -- Processo para determinar o resultado do jogo e exibir o número de disparos no display
-    --process(num_disparos)
-    --begin
-    --    case num_disparos is
-    --        when 0 =>
-    --            display <= 0;
-    --        when 1 =>
-    --            display <= 1;
-    --        when 2 =>
-    --            display <= 2;
-    --        when 3 =>
-    --            display <= 3;
-    --        when 4 =>
-    --            display <= 4 ;
-    --        when 5 =>
-    --            display <= 5 ;
-    --        when 6 =>
-    --            display <= 6;
-    --        --when 11 =>
-   --           --  display <= "1011";
-   --         when others =>
-    --            display <= 0; -- Exemplo: manter o último número de disparos exibido
-    --    end case;
-    --end process;
+            
+    process(num_disparos)
+    begin
+        case num_disparos is
+            when 0 =>
+                HEX0(0)<='0';
+                HEX0(1)<='0';
+                HEX0(2)<='0';
+                HEX0(3)<='0';
+                HEX0(4)<='0';
+                HEX0(5)<='0';
+                HEX0(6)<='1';
+            when 1 =>
+                HEX0(0)<='1';
+                HEX0(1)<='0';
+                HEX0(2)<='0';
+                HEX0(3)<='1';
+                HEX0(4)<='1';
+                HEX0(5)<='1';
+                HEX0(6)<='1';
+            when 2 =>
+                HEX0(0)<='0';
+                HEX0(1)<='0';
+                HEX0(2)<='1';
+                HEX0(3)<='0';
+                HEX0(4)<='0';
+                HEX0(5)<='1';
+                HEX0(6)<='0';
+            when 3 =>
+                HEX0(0)<='0';
+                HEX0(1)<='0';
+                HEX0(2)<='0';
+                HEX0(3)<='0';
+                HEX0(4)<='1';
+                HEX0(5)<='1';
+                HEX0(6)<='0';
+            when 4 =>
+                HEX0(0)<='1';
+                HEX0(1)<='0';
+                HEX0(2)<='0';
+                HEX0(3)<='1';
+                HEX0(4)<='1';
+                HEX0(5)<='0';
+                HEX0(6)<='0';
+            when 5 =>
+                HEX0(0)<='0';
+                HEX0(1)<='1';
+                HEX0(2)<='0';
+                HEX0(3)<='0';
+                HEX0(4)<='1';
+                HEX0(5)<='0';
+                HEX0(6)<='0';
+            when 6 =>
+                HEX0(0)<='0';
+                HEX0(1)<='1';
+                HEX0(2)<='0';
+                HEX0(3)<='0';
+                HEX0(4)<='0';
+                HEX0(5)<='0';
+                HEX0(6)<='0';
+            when others =>
+            HEX0(0)<='0';
+            HEX0(1)<='0';
+            HEX0(2)<='0';
+            HEX0(3)<='0';
+            HEX0(4)<='0';
+            HEX0(5)<='0';
+            HEX0(6)<='1';--  Exemplo: manter o último número de disparos exibido
+        end case;
+        -- desativa os outros displays ----------------------------------------------
+        HEX1(0)<='1';
+        HEX1(1)<='1';
+        HEX1(2)<='1';
+        HEX1(3)<='1';
+        HEX1(4)<='1';
+        HEX1(5)<='1';
+        HEX1(6)<='1';
+        
+        HEX2(0)<='1';
+        HEX2(1)<='1';
+        HEX2(2)<='1';
+        HEX2(3)<='1';
+        HEX2(4)<='1';
+        HEX2(5)<='1';
+        HEX2(6)<='1';
+        
+        HEX3(0)<='1';
+        HEX3(1)<='1';
+        HEX3(2)<='1';
+        HEX3(3)<='1';
+        HEX3(4)<='1';
+        HEX3(5)<='1';
+        HEX3(6)<='1';
+        -----------------------------------------------------------------------------
+    end process;
 
     process(num_disparos,num_vitorias,num_derotas)
         begin
@@ -270,12 +344,13 @@ architecture mainBatalhaNaval of BatalhaNaval is
                 ledG(0) <= '1';
             end if;
             if num_disparos = 0 and num_vitorias < 3 then
-                ledR(9) <= '1';
+                ledR(9) <= '0';
             end if;
     end process;
 
 end architecture mainBatalhaNaval;
 
 
-git config --global user.name "Leparfait22"
-git config --global user.email "helomeranda@gmail.com"
+
+
+
