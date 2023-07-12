@@ -1,0 +1,620 @@
+<?xml version="1.0" encoding="utf-8"?>
+<circuit>
+  <version>2</version>
+  <attributes/>
+  <visualElements>
+    <visualElement>
+      <elementName>External</elementName>
+      <elementAttributes>
+        <entry>
+          <string>Label</string>
+          <string>BatalhaNaval</string>
+        </entry>
+        <entry>
+          <string>applicationType</string>
+          <appType>GHDL</appType>
+        </entry>
+        <entry>
+          <string>externalInputs</string>
+          <string>navio:4,clock,navio_prox,reset,disparar,alvo:4</string>
+        </entry>
+        <entry>
+          <string>Code</string>
+          <string>library ieee;
+use ieee.std_logic_1164.all;
+
+-- Definição da entidade
+entity BatalhaNaval is
+    port (
+        -- Entradas do dono do mar
+        navio : in std_logic_vector(3 downto 0);
+        clock : in std_logic;
+        navio_prox: in std_logic;
+        reset : in std_logic;
+        disparar : in std_logic;
+        alvo : in std_logic_vector(3 downto 0);
+
+        
+        -- Saídas
+        acertou : out std_logic;
+        errou : out std_logic;
+        led_1 : out std_logic;
+        led_2 : out std_logic;
+        led_3a : out std_logic;
+        led_3b : out std_logic;
+        display : out std_logic_vector(3 downto 0);
+        vitoria : out std_logic;
+        derota  : out std_logic
+    
+        --display_seg   : out std_logic_vector(6 downto 0)
+
+    );
+end entity BatalhaNaval;
+
+architecture mainBatalhaNaval of BatalhaNaval is
+        type Navio_Type is (navio_1,navio_2,navio_3a,navio_3b);
+        signal navio_atual: Navio_Type := navio_1;
+    
+         -- Sinais internos
+    signal navio_pos :integer range 0 to 16;
+    signal navio_1_pos :integer range 0 to 16;
+    signal navio_2_pos :integer range 0 to 16;
+    signal navio_3_pos1 :integer range 0 to 16;
+    signal navio_3_pos2 :integer range 0 to 16;
+    signal pos_alvo : integer range 0 to 15;
+    signal num_disparos : integer range 0 to 15:=10;
+    signal num_vitorias : integer range 0 to 3;
+    signal num_derotas : integer range 0 to 10;
+
+
+    
+    begin
+        --selecao dos navios 
+        process(clock,reset)
+            variable count: integer := 0;
+        begin
+            if reset = &apos;1&apos; then
+                navio_atual &lt;= navio_1;
+            elsif clock&apos;event and clock = &apos;1&apos; then
+                count := count + 1;
+                if count = 1 then 
+                    navio_atual &lt;= navio_1;
+                elsif count = 2 then 
+                    navio_atual &lt;= navio_2;
+                elsif count = 3 then 
+                    navio_atual &lt;= navio_3a;
+                elsif count = 4 then 
+                    navio_atual &lt;= navio_3b;
+                end if;
+            end if;
+        end process;
+        
+        --codifficacao das posicoes  dos navios 
+        process(navio)
+        begin
+            if navio =  &quot;1011&quot; then
+                navio_pos &lt;= 0;
+            elsif navio =  &quot;1000&quot; then
+                navio_pos &lt;= 1;
+            elsif navio =  &quot;1110&quot; then
+                navio_pos &lt;= 2;
+            elsif navio =  &quot;1100&quot; then
+                navio_pos &lt;= 3;
+            elsif navio =  &quot;0011&quot; then
+                navio_pos &lt;= 4;
+            elsif navio =  &quot;0000&quot; then
+                navio_pos &lt;= 5;
+            elsif navio =  &quot;0010&quot; then
+                navio_pos &lt;= 6;
+            elsif navio =  &quot;1101&quot; then
+                navio_pos &lt;= 7;
+            elsif navio =  &quot;1111&quot; then
+                navio_pos &lt;= 8;
+            elsif navio =  &quot;0110&quot; then
+                navio_pos &lt;= 9;
+            elsif navio =  &quot;0100&quot; then
+                navio_pos &lt;= 10;
+            elsif navio =  &quot;1001&quot; then
+                navio_pos &lt;= 11;
+            elsif navio =  &quot;0111&quot; then
+                navio_pos &lt;= 12;
+            elsif navio =  &quot;0101&quot; then
+                navio_pos &lt;= 13;
+            elsif navio =  &quot;0001&quot; then
+                navio_pos &lt;= 14;
+            elsif navio =  &quot;1010&quot; then
+                navio_pos &lt;= 15;
+            end if;
+        end process;
+
+
+        -- atribuiçao das posições 
+        process(navio_atual)
+            begin
+                case navio_atual is 
+                    when navio_1 =&gt;
+                        led_1 &lt;= &apos;1&apos;;
+                        led_2 &lt;= &apos;0&apos;;
+                        led_3a &lt;= &apos;0&apos;;
+                        led_3b &lt;= &apos;0&apos;;
+                        navio_1_pos &lt;= navio_pos;
+                    when navio_2 =&gt;
+                        led_1 &lt;= &apos;0&apos;;
+                        led_2 &lt;= &apos;1&apos;;
+                        led_3a &lt;= &apos;0&apos;;
+                        led_3b &lt;= &apos;0&apos;;
+                        navio_2_pos &lt;= navio_pos;
+                    when navio_3a =&gt;
+                        led_1 &lt;= &apos;0&apos;;
+                        led_2 &lt;= &apos;0&apos;;
+                        led_3a &lt;= &apos;1&apos;;
+                        led_3b &lt;= &apos;0&apos;;
+                        navio_3_pos1 &lt;= navio_pos;
+                    when navio_3b =&gt;
+                        led_1 &lt;= &apos;0&apos;;
+                        led_2 &lt;= &apos;0&apos;;
+                        led_3a &lt;= &apos;0&apos;;
+                        led_3b &lt;= &apos;1&apos;;
+                        navio_3_pos2 &lt;= navio_pos;
+                end case;
+        end process;
+
+        
+        -- codificacao das posições do alvo
+        process(alvo,pos_alvo)
+            begin
+                if alvo =  &quot;1100&quot; then
+                    pos_alvo &lt;=0;
+                elsif alvo = &quot;1101&quot; then
+                    pos_alvo &lt;= 1;
+                elsif alvo = &quot;1110&quot; then
+                    pos_alvo &lt;= 2;
+                elsif alvo = &quot;1111&quot; then
+                    pos_alvo &lt;= 3;
+                elsif alvo = &quot;1000&quot; then
+                    pos_alvo &lt;= 4;
+                elsif alvo = &quot;1001&quot; then
+                    pos_alvo &lt;= 5;
+                elsif alvo = &quot;1010&quot; then
+                    pos_alvo &lt;= 6;
+                elsif alvo = &quot;1011&quot; then
+                    pos_alvo &lt;= 7;
+                elsif alvo = &quot;0100&quot; then
+                    pos_alvo &lt;= 8;
+                elsif alvo = &quot;0101&quot; then
+                    pos_alvo &lt;= 9;
+                elsif alvo = &quot;0110&quot; then
+                    pos_alvo &lt;= 10;
+                elsif alvo = &quot;0111&quot; then
+                    pos_alvo &lt;= 11;
+                elsif alvo = &quot;0000&quot; then
+                    pos_alvo &lt;= 12;
+                elsif alvo = &quot;0001&quot; then
+                    pos_alvo &lt;= 13;
+                elsif alvo = &quot;0010&quot; then
+                    pos_alvo &lt;= 14;
+                elsif alvo = &quot;0011&quot; then
+                    pos_alvo &lt;= 15;
+                end if;
+        end process;
+
+        -- processo para comparar e disparar
+        process(navio_1_pos, navio_2_pos, navio_3_pos1, navio_3_pos2, disparar)
+            variable contador : integer range 0 to 2 := 0;
+            begin
+                acertou &lt;= &apos;0&apos;;
+                errou &lt;= &apos;0&apos;;
+                if disparar&apos;event and disparar = &apos;1&apos; then
+                    if num_disparos = 1 then 
+                        if pos_alvo = navio_1_pos  then
+                            acertou &lt;= &apos;1&apos;;
+                            --num_disparos &lt;= num_disparos - 1;
+                            num_vitorias &lt;= num_vitorias + 1;
+                            --navio_1_pos &lt;= 16;
+                        elsif pos_alvo = navio_2_pos  then
+                            acertou &lt;= &apos;1&apos;;
+                            --num_disparos &lt;= num_disparos - 1;
+                            num_vitorias &lt;= num_vitorias + 1;
+                            --navio_2_pos &lt;= 16;
+                        elsif pos_alvo = navio_3_pos1 or pos_alvo = navio_3_pos2 then
+                            contador := contador + 1;
+                            if contador = 2 then
+                                acertou &lt;= &apos;1&apos;;
+                                --num_disparos &lt;= num_disparos - 1;
+                                num_vitorias &lt;= num_vitorias + 1;
+                            -- navio_3_pos1 &lt;= 16;
+                            -- navio_3_pos2 &lt;= 16;
+                            end if;
+                        else
+                            errou &lt;= &apos;1&apos;;
+                            num_disparos &lt;= num_disparos - 1;
+                        end if;
+                    else 
+                        if pos_alvo = navio_1_pos  then
+                            acertou &lt;= &apos;1&apos;;
+                            num_disparos &lt;= num_disparos - 1;
+                            num_vitorias &lt;= num_vitorias + 1;
+                            --navio_1_pos &lt;= 16;
+                        elsif pos_alvo = navio_2_pos  then
+                            acertou &lt;= &apos;1&apos;;
+                            num_disparos &lt;= num_disparos - 1;
+                            num_vitorias &lt;= num_vitorias + 1;
+                            --navio_2_pos &lt;= 16;
+                        elsif pos_alvo = navio_3_pos1 or pos_alvo = navio_3_pos2 then
+                            contador := contador + 1;
+                            if contador = 2 then
+                                acertou &lt;= &apos;1&apos;;
+                                num_disparos &lt;= num_disparos - 1;
+                                num_vitorias &lt;= num_vitorias + 1;
+                            -- navio_3_pos1 &lt;= 16;
+                            -- navio_3_pos2 &lt;= 16;
+                            end if;
+                        else
+                            errou &lt;= &apos;1&apos;;
+                            num_disparos &lt;= num_disparos - 1;
+                        end if;
+                    end if;
+                end if;
+        end process;
+    
+        -- Processo para determinar o resultado do jogo e exibir o número de disparos no display
+    process(num_disparos)
+    begin
+        case num_disparos is
+            when 0 =&gt;
+                display &lt;= &quot;0000&quot;;
+            when 1 =&gt;
+                display &lt;= &quot;0001&quot;;
+            when 2 =&gt;
+                display &lt;= &quot;0010&quot;;
+            when 3 =&gt;
+                display &lt;= &quot;0011&quot;;
+            when 4 =&gt;
+                display &lt;= &quot;0100&quot;;
+            when 5 =&gt;
+                display &lt;= &quot;0101&quot;;
+            when 6 =&gt;
+                display &lt;= &quot;0110&quot;;
+            when 7 =&gt;
+                display &lt;= &quot;0111&quot;;
+            when 8 =&gt;
+                display &lt;= &quot;1000&quot;;
+            when 9 =&gt;
+                display &lt;= &quot;1001&quot;;
+            when 10 =&gt;
+                display &lt;= &quot;1010&quot;;
+            --when 11 =&gt;
+              --  display &lt;= &quot;1011&quot;;
+            when others =&gt;
+                display &lt;= &quot;1011&quot;; -- Exemplo: manter o último número de disparos exibido
+        end case;
+    end process;
+
+    process(num_disparos,num_vitorias,num_derotas)
+        begin
+            if num_vitorias = 3 then 
+                vitoria &lt;= &apos;1&apos;;
+            end if;
+            if num_disparos = 0 and num_vitorias &lt; 3 then
+                derota &lt;= &apos;1&apos;;
+            end if;
+    end process;
+
+end architecture mainBatalhaNaval;</string>
+        </entry>
+        <entry>
+          <string>externalOutputs</string>
+          <string>acertou,errou,led_1,led_2,led_3a,led_3b,display:4,vitoria,derota</string>
+        </entry>
+        <entry>
+          <string>Width</string>
+          <int>15</int>
+        </entry>
+      </elementAttributes>
+      <pos x="560" y="180"/>
+    </visualElement>
+    <visualElement>
+      <elementName>In</elementName>
+      <elementAttributes>
+        <entry>
+          <string>intFormat</string>
+          <intFormat>bin</intFormat>
+        </entry>
+        <entry>
+          <string>Bits</string>
+          <int>4</int>
+        </entry>
+      </elementAttributes>
+      <pos x="440" y="100"/>
+    </visualElement>
+    <visualElement>
+      <elementName>In</elementName>
+      <elementAttributes>
+        <entry>
+          <string>intFormat</string>
+          <intFormat>bin</intFormat>
+        </entry>
+      </elementAttributes>
+      <pos x="440" y="220"/>
+    </visualElement>
+    <visualElement>
+      <elementName>In</elementName>
+      <elementAttributes>
+        <entry>
+          <string>Bits</string>
+          <int>4</int>
+        </entry>
+        <entry>
+          <string>intFormat</string>
+          <intFormat>bin</intFormat>
+        </entry>
+      </elementAttributes>
+      <pos x="440" y="360"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Button</elementName>
+      <elementAttributes/>
+      <pos x="440" y="300"/>
+    </visualElement>
+    <visualElement>
+      <elementName>LED</elementName>
+      <elementAttributes/>
+      <pos x="1080" y="40"/>
+    </visualElement>
+    <visualElement>
+      <elementName>LED</elementName>
+      <elementAttributes/>
+      <pos x="1080" y="80"/>
+    </visualElement>
+    <visualElement>
+      <elementName>LED</elementName>
+      <elementAttributes>
+        <entry>
+          <string>Color</string>
+          <awt-color>
+            <red>255</red>
+            <green>204</green>
+            <blue>0</blue>
+            <alpha>255</alpha>
+          </awt-color>
+        </entry>
+      </elementAttributes>
+      <pos x="1080" y="120"/>
+    </visualElement>
+    <visualElement>
+      <elementName>LED</elementName>
+      <elementAttributes>
+        <entry>
+          <string>Color</string>
+          <awt-color>
+            <red>0</red>
+            <green>153</green>
+            <blue>0</blue>
+            <alpha>255</alpha>
+          </awt-color>
+        </entry>
+      </elementAttributes>
+      <pos x="1080" y="380"/>
+    </visualElement>
+    <visualElement>
+      <elementName>LED</elementName>
+      <elementAttributes/>
+      <pos x="1080" y="440"/>
+    </visualElement>
+    <visualElement>
+      <elementName>LED</elementName>
+      <elementAttributes>
+        <entry>
+          <string>Color</string>
+          <awt-color>
+            <red>255</red>
+            <green>204</green>
+            <blue>0</blue>
+            <alpha>255</alpha>
+          </awt-color>
+        </entry>
+      </elementAttributes>
+      <pos x="1080" y="160"/>
+    </visualElement>
+    <visualElement>
+      <elementName>LED</elementName>
+      <elementAttributes>
+        <entry>
+          <string>Color</string>
+          <awt-color>
+            <red>255</red>
+            <green>204</green>
+            <blue>0</blue>
+            <alpha>255</alpha>
+          </awt-color>
+        </entry>
+      </elementAttributes>
+      <pos x="1080" y="220"/>
+    </visualElement>
+    <visualElement>
+      <elementName>LED</elementName>
+      <elementAttributes>
+        <entry>
+          <string>Color</string>
+          <awt-color>
+            <red>255</red>
+            <green>204</green>
+            <blue>0</blue>
+            <alpha>255</alpha>
+          </awt-color>
+        </entry>
+      </elementAttributes>
+      <pos x="1080" y="280"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Button</elementName>
+      <elementAttributes/>
+      <pos x="380" y="260"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Button</elementName>
+      <elementAttributes/>
+      <pos x="380" y="140"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Seven-Seg</elementName>
+      <elementAttributes/>
+      <pos x="1200" y="240"/>
+    </visualElement>
+  </visualElements>
+  <wires>
+    <wire>
+      <p1 x="940" y="160"/>
+      <p2 x="1080" y="160"/>
+    </wire>
+    <wire>
+      <p1 x="860" y="320"/>
+      <p2 x="940" y="320"/>
+    </wire>
+    <wire>
+      <p1 x="440" y="100"/>
+      <p2 x="500" y="100"/>
+    </wire>
+    <wire>
+      <p1 x="380" y="260"/>
+      <p2 x="500" y="260"/>
+    </wire>
+    <wire>
+      <p1 x="520" y="260"/>
+      <p2 x="560" y="260"/>
+    </wire>
+    <wire>
+      <p1 x="860" y="260"/>
+      <p2 x="960" y="260"/>
+    </wire>
+    <wire>
+      <p1 x="460" y="200"/>
+      <p2 x="560" y="200"/>
+    </wire>
+    <wire>
+      <p1 x="860" y="200"/>
+      <p2 x="900" y="200"/>
+    </wire>
+    <wire>
+      <p1 x="440" y="360"/>
+      <p2 x="540" y="360"/>
+    </wire>
+    <wire>
+      <p1 x="880" y="40"/>
+      <p2 x="1080" y="40"/>
+    </wire>
+    <wire>
+      <p1 x="380" y="140"/>
+      <p2 x="460" y="140"/>
+    </wire>
+    <wire>
+      <p1 x="440" y="300"/>
+      <p2 x="520" y="300"/>
+    </wire>
+    <wire>
+      <p1 x="500" y="240"/>
+      <p2 x="560" y="240"/>
+    </wire>
+    <wire>
+      <p1 x="860" y="240"/>
+      <p2 x="940" y="240"/>
+    </wire>
+    <wire>
+      <p1 x="900" y="80"/>
+      <p2 x="1080" y="80"/>
+    </wire>
+    <wire>
+      <p1 x="500" y="180"/>
+      <p2 x="560" y="180"/>
+    </wire>
+    <wire>
+      <p1 x="860" y="180"/>
+      <p2 x="880" y="180"/>
+    </wire>
+    <wire>
+      <p1 x="860" y="340"/>
+      <p2 x="880" y="340"/>
+    </wire>
+    <wire>
+      <p1 x="540" y="280"/>
+      <p2 x="560" y="280"/>
+    </wire>
+    <wire>
+      <p1 x="860" y="280"/>
+      <p2 x="1080" y="280"/>
+    </wire>
+    <wire>
+      <p1 x="920" y="120"/>
+      <p2 x="1080" y="120"/>
+    </wire>
+    <wire>
+      <p1 x="880" y="440"/>
+      <p2 x="1080" y="440"/>
+    </wire>
+    <wire>
+      <p1 x="440" y="220"/>
+      <p2 x="560" y="220"/>
+    </wire>
+    <wire>
+      <p1 x="860" y="220"/>
+      <p2 x="920" y="220"/>
+    </wire>
+    <wire>
+      <p1 x="960" y="220"/>
+      <p2 x="1080" y="220"/>
+    </wire>
+    <wire>
+      <p1 x="940" y="380"/>
+      <p2 x="1080" y="380"/>
+    </wire>
+    <wire>
+      <p1 x="960" y="220"/>
+      <p2 x="960" y="260"/>
+    </wire>
+    <wire>
+      <p1 x="880" y="40"/>
+      <p2 x="880" y="180"/>
+    </wire>
+    <wire>
+      <p1 x="880" y="340"/>
+      <p2 x="880" y="440"/>
+    </wire>
+    <wire>
+      <p1 x="900" y="80"/>
+      <p2 x="900" y="200"/>
+    </wire>
+    <wire>
+      <p1 x="500" y="100"/>
+      <p2 x="500" y="180"/>
+    </wire>
+    <wire>
+      <p1 x="500" y="240"/>
+      <p2 x="500" y="260"/>
+    </wire>
+    <wire>
+      <p1 x="520" y="260"/>
+      <p2 x="520" y="300"/>
+    </wire>
+    <wire>
+      <p1 x="920" y="120"/>
+      <p2 x="920" y="220"/>
+    </wire>
+    <wire>
+      <p1 x="460" y="140"/>
+      <p2 x="460" y="200"/>
+    </wire>
+    <wire>
+      <p1 x="940" y="160"/>
+      <p2 x="940" y="240"/>
+    </wire>
+    <wire>
+      <p1 x="940" y="320"/>
+      <p2 x="940" y="380"/>
+    </wire>
+    <wire>
+      <p1 x="540" y="280"/>
+      <p2 x="540" y="360"/>
+    </wire>
+  </wires>
+  <measurementOrdering/>
+</circuit>
