@@ -7,12 +7,578 @@
       <elementName>External</elementName>
       <elementAttributes>
         <entry>
+          <string>applicationType</string>
+          <appType>GHDL</appType>
+        </entry>
+        <entry>
           <string>Label</string>
           <string>BatalhaNaval</string>
         </entry>
         <entry>
+          <string>externalInputs</string>
+          <string>navio:4,clock,navio_prox,reset,disparar,alvo:4</string>
+        </entry>
+        <entry>
+          <string>Code</string>
+          <string>library ieee;
+use ieee.std_logic_1164.all;
+
+-- Definição da entidade
+entity BatalhaNaval is
+    port (
+        -- Entradas do dono do mar
+        navio : in std_logic_vector(3 downto 0);
+        clock : in std_logic;
+        navio_prox: in std_logic;
+        reset : in std_logic;
+        disparar : in std_logic;
+        alvo : in std_logic_vector(3 downto 0);
+
+        
+        -- Saídas
+        acertou : out std_logic;
+        errou : out std_logic;
+        led_1 : out std_logic;
+        led_2 : out std_logic;
+        led_3a : out std_logic;
+        led_3b : out std_logic;
+        led_disp : out std_logic;
+        display : out std_logic_vector(3 downto 0);
+        vitoria : out std_logic;
+        derota  : out std_logic
+    
+        --display_seg   : out std_logic_vector(6 downto 0)
+
+    );
+end entity BatalhaNaval;
+
+architecture mainBatalhaNaval of BatalhaNaval is
+        type Navio_Type is (navio_1,navio_2,navio_3a,navio_3b,disp);
+        signal navio_atual: Navio_Type := navio_1;
+    
+         -- Sinais internos
+    signal navio_pos :integer range 0 to 16;
+    signal navio_1_pos :integer range 0 to 16;
+    signal navio_2_pos :integer range 0 to 16;
+    signal navio_3_pos1 :integer range 0 to 16;
+    signal navio_3_pos2 :integer range 0 to 16;
+    signal pos_alvo : integer range 0 to 15;
+    signal num_disparos : integer range 0 to 10:=6;
+    signal num_vitorias : integer range 0 to 3;
+    signal num_derotas : integer range 0 to 10;
+
+
+    
+    begin
+        --selecao dos navios 
+        process(clock,reset)
+            variable count: integer := 0;
+        begin
+            if reset = &apos;1&apos; then
+                navio_atual &lt;= navio_1;
+            elsif clock&apos;event and clock = &apos;1&apos; then
+                count := count + 1;
+                if count = 1 then 
+                    navio_atual &lt;= navio_1;
+                elsif count = 2 then 
+                    navio_atual &lt;= navio_2;
+                elsif count = 3 then 
+                    navio_atual &lt;= navio_3a;
+                elsif count = 4 then 
+                    navio_atual &lt;= navio_3b;
+                elsif count = 5 then 
+                    navio_atual &lt;= disp;
+                end if;
+            end if;
+        end process;
+        
+        --codifficacao das posicoes  dos navios 
+        process(navio)
+        begin
+            if navio =  &quot;1011&quot; then
+                navio_pos &lt;= 0;
+            elsif navio =  &quot;1000&quot; then
+                navio_pos &lt;= 1;
+            elsif navio =  &quot;1110&quot; then
+                navio_pos &lt;= 2;
+            elsif navio =  &quot;1100&quot; then
+                navio_pos &lt;= 3;
+            elsif navio =  &quot;0011&quot; then
+                navio_pos &lt;= 4;
+            elsif navio =  &quot;0000&quot; then
+                navio_pos &lt;= 5;
+            elsif navio =  &quot;0010&quot; then
+                navio_pos &lt;= 6;
+            elsif navio =  &quot;1101&quot; then
+                navio_pos &lt;= 7;
+            elsif navio =  &quot;1111&quot; then
+                navio_pos &lt;= 8;
+            elsif navio =  &quot;0110&quot; then
+                navio_pos &lt;= 9;
+            elsif navio =  &quot;0100&quot; then
+                navio_pos &lt;= 10;
+            elsif navio =  &quot;1001&quot; then
+                navio_pos &lt;= 11;
+            elsif navio =  &quot;0111&quot; then
+                navio_pos &lt;= 12;
+            elsif navio =  &quot;0101&quot; then
+                navio_pos &lt;= 13;
+            elsif navio =  &quot;0001&quot; then
+                navio_pos &lt;= 14;
+            elsif navio =  &quot;1010&quot; then
+                navio_pos &lt;= 15;
+            end if;
+        end process;
+
+
+        -- atribuiçao das posições 
+        process(navio_atual)
+            begin
+                case navio_atual is 
+                    when navio_1 =&gt;
+                        led_1 &lt;= &apos;1&apos;;
+                        led_2 &lt;= &apos;0&apos;;
+                        led_3a &lt;= &apos;0&apos;;
+                        led_3b &lt;= &apos;0&apos;;
+                        navio_1_pos &lt;= navio_pos;
+                    when navio_2 =&gt;
+                        led_1 &lt;= &apos;0&apos;;
+                        led_2 &lt;= &apos;1&apos;;
+                        led_3a &lt;= &apos;0&apos;;
+                        led_3b &lt;= &apos;0&apos;;
+                        navio_2_pos &lt;= navio_pos;
+                    when navio_3a =&gt;
+                        led_1 &lt;= &apos;0&apos;;
+                        led_2 &lt;= &apos;0&apos;;
+                        led_3a &lt;= &apos;1&apos;;
+                        led_3b &lt;= &apos;0&apos;;
+                        navio_3_pos1 &lt;= navio_pos;
+                    when navio_3b =&gt;
+                        led_1 &lt;= &apos;0&apos;;
+                        led_2 &lt;= &apos;0&apos;;
+                        led_3a &lt;= &apos;0&apos;;
+                        led_3b &lt;= &apos;1&apos;;
+                        navio_3_pos2 &lt;= navio_pos;
+                    when disp =&gt;
+                        led_1 &lt;= &apos;0&apos;;
+                        led_2 &lt;= &apos;0&apos;;
+                        led_3a &lt;= &apos;0&apos;;
+                        led_3b &lt;= &apos;0&apos;;
+                        led_disp &lt;= &apos;1&apos;;
+                    when others =&gt;
+                        led_1 &lt;= &apos;0&apos;;
+                        led_2 &lt;= &apos;0&apos;;
+                        led_3a &lt;= &apos;0&apos;;
+                        led_3b &lt;= &apos;0&apos;;
+                        led_disp &lt;= &apos;1&apos;;
+                end case;
+        end process;
+
+        
+        -- codificacao das posições do alvo
+        process(alvo,pos_alvo)
+            begin
+                if alvo =  &quot;1100&quot; then
+                    pos_alvo &lt;=0;
+                elsif alvo = &quot;1101&quot; then
+                    pos_alvo &lt;= 1;
+                elsif alvo = &quot;1110&quot; then
+                    pos_alvo &lt;= 2;
+                elsif alvo = &quot;1111&quot; then
+                    pos_alvo &lt;= 3;
+                elsif alvo = &quot;1000&quot; then
+                    pos_alvo &lt;= 4;
+                elsif alvo = &quot;1001&quot; then
+                    pos_alvo &lt;= 5;
+                elsif alvo = &quot;1010&quot; then
+                    pos_alvo &lt;= 6;
+                elsif alvo = &quot;1011&quot; then
+                    pos_alvo &lt;= 7;
+                elsif alvo = &quot;0100&quot; then
+                    pos_alvo &lt;= 8;
+                elsif alvo = &quot;0101&quot; then
+                    pos_alvo &lt;= 9;
+                elsif alvo = &quot;0110&quot; then
+                    pos_alvo &lt;= 10;
+                elsif alvo = &quot;0111&quot; then
+                    pos_alvo &lt;= 11;
+                elsif alvo = &quot;0000&quot; then
+                    pos_alvo &lt;= 12;
+                elsif alvo = &quot;0001&quot; then
+                    pos_alvo &lt;= 13;
+                elsif alvo = &quot;0010&quot; then
+                    pos_alvo &lt;= 14;
+                elsif alvo = &quot;0011&quot; then
+                    pos_alvo &lt;= 15;
+                end if;
+        end process;
+
+        -- processo para comparar e disparar
+        process(navio_1_pos, navio_2_pos, navio_3_pos1, navio_3_pos2, disparar)
+            variable contador : integer range 0 to 2 := 0;
+            begin
+                acertou &lt;= &apos;0&apos;;
+                errou &lt;= &apos;0&apos;;
+                if disparar&apos;event and disparar = &apos;1&apos; then
+                    if num_disparos = 1 then 
+                        if pos_alvo = navio_1_pos  then
+                            acertou &lt;= &apos;1&apos;;
+                            --num_disparos &lt;= num_disparos - 1;
+                            num_vitorias &lt;= num_vitorias + 1;
+                            --navio_1_pos &lt;= 16;
+                        elsif pos_alvo = navio_2_pos  then
+                            acertou &lt;= &apos;1&apos;;
+                            --num_disparos &lt;= num_disparos - 1;
+                            num_vitorias &lt;= num_vitorias + 1;
+                            --navio_2_pos &lt;= 16;
+                        elsif pos_alvo = navio_3_pos1 or pos_alvo = navio_3_pos2 then
+                            contador := contador + 1;
+                            if contador = 2 then
+                                acertou &lt;= &apos;1&apos;;
+                                --num_disparos &lt;= num_disparos - 1;
+                                num_vitorias &lt;= num_vitorias + 1;
+                            -- navio_3_pos1 &lt;= 16;
+                            -- navio_3_pos2 &lt;= 16;
+                            end if;
+                        else
+                            errou &lt;= &apos;1&apos;;
+                            num_disparos &lt;= num_disparos - 1;
+                        end if;
+                    else 
+                        if pos_alvo = navio_1_pos  then
+                            acertou &lt;= &apos;1&apos;;
+                            num_disparos &lt;= num_disparos - 1;
+                            num_vitorias &lt;= num_vitorias + 1;
+                            --navio_1_pos &lt;= 16;
+                        elsif pos_alvo = navio_2_pos  then
+                            acertou &lt;= &apos;1&apos;;
+                            num_disparos &lt;= num_disparos - 1;
+                            num_vitorias &lt;= num_vitorias + 1;
+                            --navio_2_pos &lt;= 16;
+                        elsif pos_alvo = navio_3_pos1 or pos_alvo = navio_3_pos2 then
+                            contador := contador + 1;
+                            if contador = 2 then
+                                acertou &lt;= &apos;1&apos;;
+                                num_disparos &lt;= num_disparos - 1;
+                                num_vitorias &lt;= num_vitorias + 1;
+                            -- navio_3_pos1 &lt;= 16;
+                            -- navio_3_pos2 &lt;= 16;
+                            end if;
+                        else
+                            errou &lt;= &apos;1&apos;;
+                            num_disparos &lt;= num_disparos - 1;
+                        end if;
+                    end if;
+                end if;
+        end process;
+    
+        -- Processo para determinar o resultado do jogo e exibir o número de disparos no display
+    process(num_disparos)
+    begin
+        case num_disparos is
+            when 0 =&gt;
+                display &lt;= &quot;0000&quot;;
+            when 1 =&gt;
+                display &lt;= &quot;0001&quot;;
+            when 2 =&gt;
+                display &lt;= &quot;0010&quot;;
+            when 3 =&gt;
+                display &lt;= &quot;0011&quot;;
+            when 4 =&gt;
+                display &lt;= &quot;0100&quot;;
+            when 5 =&gt;
+                display &lt;= &quot;0101&quot;;
+            when 6 =&gt;
+                display &lt;= &quot;0110&quot;;
+            --when 11 =&gt;
+              --  display &lt;= &quot;1011&quot;;
+            when others =&gt;
+                display &lt;= &quot;1011&quot;; -- Exemplo: manter o último número de disparos exibido
+        end case;
+    end process;
+
+    process(num_disparos,num_vitorias,num_derotas)
+        begin
+            if num_vitorias = 3 then 
+                vitoria &lt;= &apos;1&apos;;
+            end if;
+            if num_disparos = 0 and num_vitorias &lt; 3 then
+                derota &lt;= &apos;1&apos;;
+            end if;
+    end process;
+
+end architecture mainBatalhaNaval;</string>
+        </entry>
+        <entry>
+          <string>externalOutputs</string>
+          <string>acertou,errou,led_1,led_2,led_3a,led_3b,led_disp,display:4,vitoria,derota</string>
+        </entry>
+        <entry>
+          <string>Width</string>
+          <int>15</int>
+        </entry>
+      </elementAttributes>
+      <pos x="560" y="180"/>
+    </visualElement>
+    <visualElement>
+      <elementName>In</elementName>
+      <elementAttributes>
+        <entry>
+          <string>Label</string>
+          <string>pos navio</string>
+        </entry>
+        <entry>
+          <string>Bits</string>
+          <int>4</int>
+        </entry>
+        <entry>
+          <string>intFormat</string>
+          <intFormat>bin</intFormat>
+        </entry>
+      </elementAttributes>
+      <pos x="380" y="20"/>
+    </visualElement>
+    <visualElement>
+      <elementName>LED</elementName>
+      <elementAttributes/>
+      <pos x="1080" y="40"/>
+    </visualElement>
+    <visualElement>
+      <elementName>LED</elementName>
+      <elementAttributes/>
+      <pos x="1080" y="80"/>
+    </visualElement>
+    <visualElement>
+      <elementName>LED</elementName>
+      <elementAttributes>
+        <entry>
+          <string>Color</string>
+          <awt-color>
+            <red>255</red>
+            <green>204</green>
+            <blue>0</blue>
+            <alpha>255</alpha>
+          </awt-color>
+        </entry>
+      </elementAttributes>
+      <pos x="1080" y="120"/>
+    </visualElement>
+    <visualElement>
+      <elementName>LED</elementName>
+      <elementAttributes>
+        <entry>
+          <string>Color</string>
+          <awt-color>
+            <red>0</red>
+            <green>153</green>
+            <blue>0</blue>
+            <alpha>255</alpha>
+          </awt-color>
+        </entry>
+      </elementAttributes>
+      <pos x="1080" y="420"/>
+    </visualElement>
+    <visualElement>
+      <elementName>LED</elementName>
+      <elementAttributes>
+        <entry>
+          <string>Color</string>
+          <awt-color>
+            <red>255</red>
+            <green>204</green>
+            <blue>0</blue>
+            <alpha>255</alpha>
+          </awt-color>
+        </entry>
+      </elementAttributes>
+      <pos x="1080" y="160"/>
+    </visualElement>
+    <visualElement>
+      <elementName>LED</elementName>
+      <elementAttributes>
+        <entry>
+          <string>Color</string>
+          <awt-color>
+            <red>255</red>
+            <green>204</green>
+            <blue>0</blue>
+            <alpha>255</alpha>
+          </awt-color>
+        </entry>
+      </elementAttributes>
+      <pos x="1080" y="220"/>
+    </visualElement>
+    <visualElement>
+      <elementName>LED</elementName>
+      <elementAttributes>
+        <entry>
+          <string>Color</string>
+          <awt-color>
+            <red>255</red>
+            <green>204</green>
+            <blue>0</blue>
+            <alpha>255</alpha>
+          </awt-color>
+        </entry>
+      </elementAttributes>
+      <pos x="1080" y="280"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Button</elementName>
+      <elementAttributes>
+        <entry>
+          <string>Label</string>
+          <string>Disparo</string>
+        </entry>
+      </elementAttributes>
+      <pos x="380" y="380"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Button</elementName>
+      <elementAttributes>
+        <entry>
+          <string>Label</string>
+          <string>prox nav</string>
+        </entry>
+      </elementAttributes>
+      <pos x="380" y="80"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Seven-Seg</elementName>
+      <elementAttributes/>
+      <pos x="1660" y="300"/>
+    </visualElement>
+    <visualElement>
+      <elementName>External</elementName>
+      <elementAttributes>
+        <entry>
+          <string>Label</string>
+          <string>disp7seg</string>
+        </entry>
+        <entry>
           <string>applicationType</string>
           <appType>GHDL</appType>
+        </entry>
+        <entry>
+          <string>externalInputs</string>
+          <string>Data_In:4</string>
+        </entry>
+        <entry>
+          <string>Code</string>
+          <string>library ieee;
+	use ieee.std_logic_1164.all;
+	use ieee.std_logic_arith.all;
+	use ieee.std_logic_unsigned.all;
+	
+	
+	entity disp7seg is
+	port(
+	    Data_In          :   in  std_logic_vector(3 downto 0);
+        a,b,c,d,e,f,g,h  :  out  std_logic;
+		dig_uni          :  out  std_logic;
+        dig_dez          :  out  std_logic;
+        dig_cen          :  out  std_logic;
+        dig_mil          :  out  std_logic);
+		  
+   end disp7seg;
+	
+	
+	architecture hardware of disp7seg is
+	begin
+		process(Data_In)
+		begin
+		  case Data_In is
+		  when &quot;0000&quot;   =&gt; a &lt;= &apos;1&apos;; b &lt;= &apos;1&apos;; c &lt;= &apos;1&apos;; d &lt;= &apos;1&apos;; e &lt;= &apos;1&apos;; f &lt;= &apos;1&apos;; g &lt;= &apos;0&apos;; h &lt;= &apos;0&apos;;
+	      when &quot;0001&quot;   =&gt; a &lt;= &apos;0&apos;; b &lt;= &apos;1&apos;; c &lt;= &apos;1&apos;; d &lt;= &apos;0&apos;; e &lt;= &apos;0&apos;; f &lt;= &apos;0&apos;; g &lt;= &apos;0&apos;; h &lt;= &apos;0&apos;;
+	      when &quot;0010&quot;   =&gt; a &lt;= &apos;1&apos;; b &lt;= &apos;1&apos;; c &lt;= &apos;0&apos;; d &lt;= &apos;1&apos;; e &lt;= &apos;1&apos;; f &lt;= &apos;0&apos;; g &lt;= &apos;1&apos;; h &lt;= &apos;0&apos;;	
+	      when &quot;0011&quot;   =&gt; a &lt;= &apos;1&apos;; b &lt;= &apos;1&apos;; c &lt;= &apos;1&apos;; d &lt;= &apos;1&apos;; e &lt;= &apos;0&apos;; f &lt;= &apos;0&apos;; g &lt;= &apos;1&apos;; h &lt;= &apos;0&apos;; 
+	      when &quot;0100&quot;   =&gt; a &lt;= &apos;0&apos;; b &lt;= &apos;1&apos;; c &lt;= &apos;1&apos;; d &lt;= &apos;0&apos;; e &lt;= &apos;0&apos;; f &lt;= &apos;1&apos;; g &lt;= &apos;1&apos;; h &lt;= &apos;0&apos;;	
+	      when &quot;0101&quot;   =&gt; a &lt;= &apos;1&apos;; b &lt;= &apos;0&apos;; c &lt;= &apos;1&apos;; d &lt;= &apos;1&apos;; e &lt;= &apos;0&apos;; f &lt;= &apos;1&apos;; g &lt;= &apos;1&apos;; h &lt;= &apos;0&apos;;	
+	      when &quot;0110&quot;   =&gt; a &lt;= &apos;1&apos;; b &lt;= &apos;0&apos;; c &lt;= &apos;1&apos;; d &lt;= &apos;1&apos;; e &lt;= &apos;1&apos;; f &lt;= &apos;1&apos;; g &lt;= &apos;1&apos;; h &lt;= &apos;0&apos;;	
+	      when &quot;0111&quot;   =&gt; a &lt;= &apos;1&apos;; b &lt;= &apos;1&apos;; c &lt;= &apos;1&apos;; d &lt;= &apos;0&apos;; e &lt;= &apos;0&apos;; f &lt;= &apos;0&apos;; g &lt;= &apos;0&apos;; h &lt;= &apos;0&apos;;	
+	      when &quot;1000&quot;   =&gt; a &lt;= &apos;1&apos;; b &lt;= &apos;1&apos;; c &lt;= &apos;1&apos;; d &lt;= &apos;1&apos;; e &lt;= &apos;1&apos;; f &lt;= &apos;1&apos;; g &lt;= &apos;1&apos;; h &lt;= &apos;0&apos;;
+	      when &quot;1001&quot;   =&gt; a &lt;= &apos;1&apos;; b &lt;= &apos;1&apos;; c &lt;= &apos;1&apos;; d &lt;= &apos;1&apos;; e &lt;= &apos;0&apos;; f &lt;= &apos;1&apos;; g &lt;= &apos;1&apos;; h &lt;= &apos;0&apos;;			
+	      when others   =&gt; a &lt;= &apos;0&apos;; b &lt;= &apos;0&apos;; c &lt;= &apos;0&apos;; d &lt;= &apos;0&apos;; e &lt;= &apos;0&apos;; f &lt;= &apos;0&apos;; g &lt;= &apos;0&apos;; h &lt;= &apos;0&apos;;	
+	     end case;
+		end process;
+		
+		dig_mil &lt;= &apos;1&apos;;
+		dig_cen &lt;= &apos;1&apos;;
+		dig_dez &lt;= &apos;1&apos;;
+		dig_uni &lt;= &apos;1&apos;;
+		
+		
+   end hardware;</string>
+        </entry>
+        <entry>
+          <string>externalOutputs</string>
+          <string>a,b,c,d,e,f,g,h,dig_uni,dig_dez,dig_cen,dig_mil</string>
+        </entry>
+        <entry>
+          <string>Width</string>
+          <int>5</int>
+        </entry>
+      </elementAttributes>
+      <pos x="1360" y="180"/>
+    </visualElement>
+    <visualElement>
+      <elementName>In</elementName>
+      <elementAttributes>
+        <entry>
+          <string>Label</string>
+          <string>Alvo</string>
+        </entry>
+        <entry>
+          <string>Bits</string>
+          <int>4</int>
+        </entry>
+        <entry>
+          <string>intFormat</string>
+          <intFormat>bin</intFormat>
+        </entry>
+      </elementAttributes>
+      <pos x="380" y="440"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Button</elementName>
+      <elementAttributes/>
+      <pos x="380" y="220"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Button</elementName>
+      <elementAttributes/>
+      <pos x="380" y="320"/>
+    </visualElement>
+    <visualElement>
+      <elementName>LED</elementName>
+      <elementAttributes>
+        <entry>
+          <string>Color</string>
+          <awt-color>
+            <red>0</red>
+            <green>0</green>
+            <blue>255</blue>
+            <alpha>255</alpha>
+          </awt-color>
+        </entry>
+      </elementAttributes>
+      <pos x="1080" y="340"/>
+    </visualElement>
+    <visualElement>
+      <elementName>LED</elementName>
+      <elementAttributes/>
+      <pos x="1080" y="480"/>
+    </visualElement>
+    <visualElement>
+      <elementName>External</elementName>
+      <elementAttributes>
+        <entry>
+          <string>applicationType</string>
+          <appType>GHDL</appType>
+        </entry>
+        <entry>
+          <string>Label</string>
+          <string>BatalhaNaval</string>
         </entry>
         <entry>
           <string>externalInputs</string>
@@ -311,35 +877,15 @@ end architecture mainBatalhaNaval;</string>
           <int>15</int>
         </entry>
       </elementAttributes>
-      <pos x="560" y="180"/>
+      <pos x="680" y="940"/>
     </visualElement>
     <visualElement>
       <elementName>In</elementName>
       <elementAttributes>
         <entry>
-          <string>intFormat</string>
-          <intFormat>bin</intFormat>
+          <string>Label</string>
+          <string>pos navio</string>
         </entry>
-        <entry>
-          <string>Bits</string>
-          <int>4</int>
-        </entry>
-      </elementAttributes>
-      <pos x="440" y="100"/>
-    </visualElement>
-    <visualElement>
-      <elementName>In</elementName>
-      <elementAttributes>
-        <entry>
-          <string>intFormat</string>
-          <intFormat>bin</intFormat>
-        </entry>
-      </elementAttributes>
-      <pos x="440" y="220"/>
-    </visualElement>
-    <visualElement>
-      <elementName>In</elementName>
-      <elementAttributes>
         <entry>
           <string>Bits</string>
           <int>4</int>
@@ -349,22 +895,17 @@ end architecture mainBatalhaNaval;</string>
           <intFormat>bin</intFormat>
         </entry>
       </elementAttributes>
-      <pos x="440" y="360"/>
-    </visualElement>
-    <visualElement>
-      <elementName>Button</elementName>
-      <elementAttributes/>
-      <pos x="440" y="300"/>
+      <pos x="500" y="780"/>
     </visualElement>
     <visualElement>
       <elementName>LED</elementName>
       <elementAttributes/>
-      <pos x="1080" y="40"/>
+      <pos x="1200" y="800"/>
     </visualElement>
     <visualElement>
       <elementName>LED</elementName>
       <elementAttributes/>
-      <pos x="1080" y="80"/>
+      <pos x="1200" y="840"/>
     </visualElement>
     <visualElement>
       <elementName>LED</elementName>
@@ -379,7 +920,7 @@ end architecture mainBatalhaNaval;</string>
           </awt-color>
         </entry>
       </elementAttributes>
-      <pos x="1080" y="120"/>
+      <pos x="1200" y="880"/>
     </visualElement>
     <visualElement>
       <elementName>LED</elementName>
@@ -394,12 +935,7 @@ end architecture mainBatalhaNaval;</string>
           </awt-color>
         </entry>
       </elementAttributes>
-      <pos x="1080" y="380"/>
-    </visualElement>
-    <visualElement>
-      <elementName>LED</elementName>
-      <elementAttributes/>
-      <pos x="1080" y="440"/>
+      <pos x="1200" y="1180"/>
     </visualElement>
     <visualElement>
       <elementName>LED</elementName>
@@ -414,7 +950,7 @@ end architecture mainBatalhaNaval;</string>
           </awt-color>
         </entry>
       </elementAttributes>
-      <pos x="1080" y="160"/>
+      <pos x="1200" y="920"/>
     </visualElement>
     <visualElement>
       <elementName>LED</elementName>
@@ -429,7 +965,7 @@ end architecture mainBatalhaNaval;</string>
           </awt-color>
         </entry>
       </elementAttributes>
-      <pos x="1080" y="220"/>
+      <pos x="1200" y="980"/>
     </visualElement>
     <visualElement>
       <elementName>LED</elementName>
@@ -444,48 +980,184 @@ end architecture mainBatalhaNaval;</string>
           </awt-color>
         </entry>
       </elementAttributes>
-      <pos x="1080" y="280"/>
+      <pos x="1200" y="1040"/>
     </visualElement>
     <visualElement>
       <elementName>Button</elementName>
-      <elementAttributes/>
-      <pos x="380" y="260"/>
+      <elementAttributes>
+        <entry>
+          <string>Label</string>
+          <string>Disparo</string>
+        </entry>
+      </elementAttributes>
+      <pos x="500" y="1140"/>
     </visualElement>
     <visualElement>
       <elementName>Button</elementName>
-      <elementAttributes/>
-      <pos x="380" y="140"/>
+      <elementAttributes>
+        <entry>
+          <string>Label</string>
+          <string>prox nav</string>
+        </entry>
+      </elementAttributes>
+      <pos x="500" y="840"/>
     </visualElement>
     <visualElement>
       <elementName>Seven-Seg</elementName>
       <elementAttributes/>
-      <pos x="1200" y="240"/>
+      <pos x="1780" y="1060"/>
+    </visualElement>
+    <visualElement>
+      <elementName>External</elementName>
+      <elementAttributes>
+        <entry>
+          <string>applicationType</string>
+          <appType>GHDL</appType>
+        </entry>
+        <entry>
+          <string>Label</string>
+          <string>disp7seg</string>
+        </entry>
+        <entry>
+          <string>externalInputs</string>
+          <string>Data_In:4</string>
+        </entry>
+        <entry>
+          <string>Code</string>
+          <string>library ieee;
+	use ieee.std_logic_1164.all;
+	use ieee.std_logic_arith.all;
+	use ieee.std_logic_unsigned.all;
+	
+	
+	entity disp7seg is
+	port(
+	    Data_In          :   in  std_logic_vector(3 downto 0);
+        a,b,c,d,e,f,g,h  :  out  std_logic;
+		dig_uni          :  out  std_logic;
+        dig_dez          :  out  std_logic;
+        dig_cen          :  out  std_logic;
+        dig_mil          :  out  std_logic);
+		  
+   end disp7seg;
+	
+	
+	architecture hardware of disp7seg is
+	begin
+		process(Data_In)
+		begin
+		  case Data_In is
+		  when &quot;0000&quot;   =&gt; a &lt;= &apos;1&apos;; b &lt;= &apos;1&apos;; c &lt;= &apos;1&apos;; d &lt;= &apos;1&apos;; e &lt;= &apos;1&apos;; f &lt;= &apos;1&apos;; g &lt;= &apos;0&apos;; h &lt;= &apos;0&apos;;
+	      when &quot;0001&quot;   =&gt; a &lt;= &apos;0&apos;; b &lt;= &apos;1&apos;; c &lt;= &apos;1&apos;; d &lt;= &apos;0&apos;; e &lt;= &apos;0&apos;; f &lt;= &apos;0&apos;; g &lt;= &apos;0&apos;; h &lt;= &apos;0&apos;;
+	      when &quot;0010&quot;   =&gt; a &lt;= &apos;1&apos;; b &lt;= &apos;1&apos;; c &lt;= &apos;0&apos;; d &lt;= &apos;1&apos;; e &lt;= &apos;1&apos;; f &lt;= &apos;0&apos;; g &lt;= &apos;1&apos;; h &lt;= &apos;0&apos;;	
+	      when &quot;0011&quot;   =&gt; a &lt;= &apos;1&apos;; b &lt;= &apos;1&apos;; c &lt;= &apos;1&apos;; d &lt;= &apos;1&apos;; e &lt;= &apos;0&apos;; f &lt;= &apos;0&apos;; g &lt;= &apos;1&apos;; h &lt;= &apos;0&apos;; 
+	      when &quot;0100&quot;   =&gt; a &lt;= &apos;0&apos;; b &lt;= &apos;1&apos;; c &lt;= &apos;1&apos;; d &lt;= &apos;0&apos;; e &lt;= &apos;0&apos;; f &lt;= &apos;1&apos;; g &lt;= &apos;1&apos;; h &lt;= &apos;0&apos;;	
+	      when &quot;0101&quot;   =&gt; a &lt;= &apos;1&apos;; b &lt;= &apos;0&apos;; c &lt;= &apos;1&apos;; d &lt;= &apos;1&apos;; e &lt;= &apos;0&apos;; f &lt;= &apos;1&apos;; g &lt;= &apos;1&apos;; h &lt;= &apos;0&apos;;	
+	      when &quot;0110&quot;   =&gt; a &lt;= &apos;1&apos;; b &lt;= &apos;0&apos;; c &lt;= &apos;1&apos;; d &lt;= &apos;1&apos;; e &lt;= &apos;1&apos;; f &lt;= &apos;1&apos;; g &lt;= &apos;1&apos;; h &lt;= &apos;0&apos;;	
+	      when &quot;0111&quot;   =&gt; a &lt;= &apos;1&apos;; b &lt;= &apos;1&apos;; c &lt;= &apos;1&apos;; d &lt;= &apos;0&apos;; e &lt;= &apos;0&apos;; f &lt;= &apos;0&apos;; g &lt;= &apos;0&apos;; h &lt;= &apos;0&apos;;	
+	      when &quot;1000&quot;   =&gt; a &lt;= &apos;1&apos;; b &lt;= &apos;1&apos;; c &lt;= &apos;1&apos;; d &lt;= &apos;1&apos;; e &lt;= &apos;1&apos;; f &lt;= &apos;1&apos;; g &lt;= &apos;1&apos;; h &lt;= &apos;0&apos;;
+	      when &quot;1001&quot;   =&gt; a &lt;= &apos;1&apos;; b &lt;= &apos;1&apos;; c &lt;= &apos;1&apos;; d &lt;= &apos;1&apos;; e &lt;= &apos;0&apos;; f &lt;= &apos;1&apos;; g &lt;= &apos;1&apos;; h &lt;= &apos;0&apos;;			
+	      when others   =&gt; a &lt;= &apos;0&apos;; b &lt;= &apos;0&apos;; c &lt;= &apos;0&apos;; d &lt;= &apos;0&apos;; e &lt;= &apos;0&apos;; f &lt;= &apos;0&apos;; g &lt;= &apos;0&apos;; h &lt;= &apos;0&apos;;	
+	     end case;
+		end process;
+		
+		dig_mil &lt;= &apos;1&apos;;
+		dig_cen &lt;= &apos;1&apos;;
+		dig_dez &lt;= &apos;1&apos;;
+		dig_uni &lt;= &apos;1&apos;;
+		
+		
+   end hardware;</string>
+        </entry>
+        <entry>
+          <string>externalOutputs</string>
+          <string>a,b,c,d,e,f,g,h,dig_uni,dig_dez,dig_cen,dig_mil</string>
+        </entry>
+        <entry>
+          <string>Width</string>
+          <int>5</int>
+        </entry>
+      </elementAttributes>
+      <pos x="1480" y="940"/>
+    </visualElement>
+    <visualElement>
+      <elementName>In</elementName>
+      <elementAttributes>
+        <entry>
+          <string>Label</string>
+          <string>Alvo</string>
+        </entry>
+        <entry>
+          <string>Bits</string>
+          <int>4</int>
+        </entry>
+        <entry>
+          <string>intFormat</string>
+          <intFormat>bin</intFormat>
+        </entry>
+      </elementAttributes>
+      <pos x="500" y="1200"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Button</elementName>
+      <elementAttributes/>
+      <pos x="500" y="980"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Button</elementName>
+      <elementAttributes/>
+      <pos x="500" y="1080"/>
+    </visualElement>
+    <visualElement>
+      <elementName>LED</elementName>
+      <elementAttributes/>
+      <pos x="1200" y="1240"/>
     </visualElement>
   </visualElements>
   <wires>
-    <wire>
-      <p1 x="940" y="160"/>
-      <p2 x="1080" y="160"/>
-    </wire>
     <wire>
       <p1 x="860" y="320"/>
       <p2 x="940" y="320"/>
     </wire>
     <wire>
-      <p1 x="440" y="100"/>
-      <p2 x="500" y="100"/>
+      <p1 x="1460" y="320"/>
+      <p2 x="1560" y="320"/>
     </wire>
     <wire>
-      <p1 x="380" y="260"/>
-      <p2 x="500" y="260"/>
+      <p1 x="380" y="320"/>
+      <p2 x="460" y="320"/>
     </wire>
     <wire>
-      <p1 x="520" y="260"/>
-      <p2 x="560" y="260"/>
+      <p1 x="580" y="960"/>
+      <p2 x="680" y="960"/>
+    </wire>
+    <wire>
+      <p1 x="980" y="960"/>
+      <p2 x="1020" y="960"/>
+    </wire>
+    <wire>
+      <p1 x="1580" y="960"/>
+      <p2 x="1800" y="960"/>
+    </wire>
+    <wire>
+      <p1 x="1680" y="1280"/>
+      <p2 x="1840" y="1280"/>
     </wire>
     <wire>
       <p1 x="860" y="260"/>
       <p2 x="960" y="260"/>
+    </wire>
+    <wire>
+      <p1 x="1460" y="260"/>
+      <p2 x="1620" y="260"/>
+    </wire>
+    <wire>
+      <p1 x="500" y="260"/>
+      <p2 x="560" y="260"/>
+    </wire>
+    <wire>
+      <p1 x="1740" y="1220"/>
+      <p2 x="1780" y="1220"/>
     </wire>
     <wire>
       <p1 x="460" y="200"/>
@@ -496,63 +1168,111 @@ end architecture mainBatalhaNaval;</string>
       <p2 x="900" y="200"/>
     </wire>
     <wire>
-      <p1 x="440" y="360"/>
-      <p2 x="540" y="360"/>
+      <p1 x="1460" y="200"/>
+      <p2 x="1680" y="200"/>
     </wire>
     <wire>
-      <p1 x="880" y="40"/>
-      <p2 x="1080" y="40"/>
+      <p1 x="1560" y="520"/>
+      <p2 x="1720" y="520"/>
     </wire>
     <wire>
-      <p1 x="380" y="140"/>
-      <p2 x="460" y="140"/>
+      <p1 x="1020" y="840"/>
+      <p2 x="1200" y="840"/>
     </wire>
     <wire>
-      <p1 x="440" y="300"/>
-      <p2 x="520" y="300"/>
+      <p1 x="500" y="840"/>
+      <p2 x="580" y="840"/>
     </wire>
     <wire>
-      <p1 x="500" y="240"/>
-      <p2 x="560" y="240"/>
+      <p1 x="1620" y="460"/>
+      <p2 x="1660" y="460"/>
     </wire>
     <wire>
-      <p1 x="860" y="240"/>
-      <p2 x="940" y="240"/>
+      <p1 x="1080" y="1100"/>
+      <p2 x="1420" y="1100"/>
+    </wire>
+    <wire>
+      <p1 x="980" y="1100"/>
+      <p2 x="1020" y="1100"/>
+    </wire>
+    <wire>
+      <p1 x="500" y="780"/>
+      <p2 x="620" y="780"/>
     </wire>
     <wire>
       <p1 x="900" y="80"/>
       <p2 x="1080" y="80"/>
     </wire>
     <wire>
-      <p1 x="500" y="180"/>
-      <p2 x="560" y="180"/>
+      <p1 x="380" y="80"/>
+      <p2 x="460" y="80"/>
     </wire>
     <wire>
-      <p1 x="860" y="180"/>
-      <p2 x="880" y="180"/>
+      <p1 x="980" y="1040"/>
+      <p2 x="1200" y="1040"/>
+    </wire>
+    <wire>
+      <p1 x="1580" y="1040"/>
+      <p2 x="1720" y="1040"/>
+    </wire>
+    <wire>
+      <p1 x="640" y="1040"/>
+      <p2 x="680" y="1040"/>
     </wire>
     <wire>
       <p1 x="860" y="340"/>
-      <p2 x="880" y="340"/>
+      <p2 x="920" y="340"/>
     </wire>
     <wire>
-      <p1 x="540" y="280"/>
-      <p2 x="560" y="280"/>
+      <p1 x="960" y="340"/>
+      <p2 x="1080" y="340"/>
+    </wire>
+    <wire>
+      <p1 x="380" y="20"/>
+      <p2 x="500" y="20"/>
+    </wire>
+    <wire>
+      <p1 x="500" y="980"/>
+      <p2 x="680" y="980"/>
+    </wire>
+    <wire>
+      <p1 x="980" y="980"/>
+      <p2 x="1040" y="980"/>
+    </wire>
+    <wire>
+      <p1 x="1080" y="980"/>
+      <p2 x="1200" y="980"/>
+    </wire>
+    <wire>
+      <p1 x="1580" y="980"/>
+      <p2 x="1820" y="980"/>
     </wire>
     <wire>
       <p1 x="860" y="280"/>
       <p2 x="1080" y="280"/>
     </wire>
     <wire>
-      <p1 x="920" y="120"/>
-      <p2 x="1080" y="120"/>
+      <p1 x="1460" y="280"/>
+      <p2 x="1600" y="280"/>
     </wire>
     <wire>
-      <p1 x="880" y="440"/>
-      <p2 x="1080" y="440"/>
+      <p1 x="520" y="280"/>
+      <p2 x="560" y="280"/>
     </wire>
     <wire>
-      <p1 x="440" y="220"/>
+      <p1 x="1060" y="920"/>
+      <p2 x="1200" y="920"/>
+    </wire>
+    <wire>
+      <p1 x="1720" y="1240"/>
+      <p2 x="1800" y="1240"/>
+    </wire>
+    <wire>
+      <p1 x="1020" y="1240"/>
+      <p2 x="1200" y="1240"/>
+    </wire>
+    <wire>
+      <p1 x="380" y="220"/>
       <p2 x="560" y="220"/>
     </wire>
     <wire>
@@ -564,44 +1284,300 @@ end architecture mainBatalhaNaval;</string>
       <p2 x="1080" y="220"/>
     </wire>
     <wire>
+      <p1 x="1460" y="220"/>
+      <p2 x="1700" y="220"/>
+    </wire>
+    <wire>
+      <p1 x="1060" y="1180"/>
+      <p2 x="1200" y="1180"/>
+    </wire>
+    <wire>
+      <p1 x="940" y="160"/>
+      <p2 x="1080" y="160"/>
+    </wire>
+    <wire>
+      <p1 x="1600" y="480"/>
+      <p2 x="1680" y="480"/>
+    </wire>
+    <wire>
+      <p1 x="900" y="480"/>
+      <p2 x="1080" y="480"/>
+    </wire>
+    <wire>
+      <p1 x="1000" y="800"/>
+      <p2 x="1200" y="800"/>
+    </wire>
+    <wire>
+      <p1 x="920" y="420"/>
+      <p2 x="1080" y="420"/>
+    </wire>
+    <wire>
+      <p1 x="1580" y="1060"/>
+      <p2 x="1700" y="1060"/>
+    </wire>
+    <wire>
+      <p1 x="980" y="1060"/>
+      <p2 x="1080" y="1060"/>
+    </wire>
+    <wire>
+      <p1 x="880" y="40"/>
+      <p2 x="1080" y="40"/>
+    </wire>
+    <wire>
+      <p1 x="860" y="360"/>
+      <p2 x="900" y="360"/>
+    </wire>
+    <wire>
+      <p1 x="980" y="1000"/>
+      <p2 x="1060" y="1000"/>
+    </wire>
+    <wire>
+      <p1 x="1580" y="1000"/>
+      <p2 x="1840" y="1000"/>
+    </wire>
+    <wire>
+      <p1 x="580" y="1000"/>
+      <p2 x="680" y="1000"/>
+    </wire>
+    <wire>
+      <p1 x="1460" y="300"/>
+      <p2 x="1580" y="300"/>
+    </wire>
+    <wire>
+      <p1 x="860" y="300"/>
+      <p2 x="960" y="300"/>
+    </wire>
+    <wire>
+      <p1 x="620" y="940"/>
+      <p2 x="680" y="940"/>
+    </wire>
+    <wire>
+      <p1 x="980" y="940"/>
+      <p2 x="1000" y="940"/>
+    </wire>
+    <wire>
+      <p1 x="1580" y="940"/>
+      <p2 x="1780" y="940"/>
+    </wire>
+    <wire>
+      <p1 x="1420" y="940"/>
+      <p2 x="1480" y="940"/>
+    </wire>
+    <wire>
+      <p1 x="1700" y="1260"/>
+      <p2 x="1820" y="1260"/>
+    </wire>
+    <wire>
+      <p1 x="860" y="240"/>
+      <p2 x="940" y="240"/>
+    </wire>
+    <wire>
+      <p1 x="1460" y="240"/>
+      <p2 x="1720" y="240"/>
+    </wire>
+    <wire>
+      <p1 x="460" y="240"/>
+      <p2 x="560" y="240"/>
+    </wire>
+    <wire>
+      <p1 x="1040" y="880"/>
+      <p2 x="1200" y="880"/>
+    </wire>
+    <wire>
+      <p1 x="500" y="1200"/>
+      <p2 x="640" y="1200"/>
+    </wire>
+    <wire>
+      <p1 x="500" y="180"/>
+      <p2 x="560" y="180"/>
+    </wire>
+    <wire>
+      <p1 x="860" y="180"/>
+      <p2 x="880" y="180"/>
+    </wire>
+    <wire>
+      <p1 x="1460" y="180"/>
+      <p2 x="1660" y="180"/>
+    </wire>
+    <wire>
+      <p1 x="1300" y="180"/>
+      <p2 x="1360" y="180"/>
+    </wire>
+    <wire>
+      <p1 x="1580" y="500"/>
+      <p2 x="1700" y="500"/>
+    </wire>
+    <wire>
+      <p1 x="500" y="1140"/>
+      <p2 x="620" y="1140"/>
+    </wire>
+    <wire>
+      <p1 x="920" y="120"/>
+      <p2 x="1080" y="120"/>
+    </wire>
+    <wire>
+      <p1 x="380" y="440"/>
+      <p2 x="520" y="440"/>
+    </wire>
+    <wire>
+      <p1 x="980" y="1080"/>
+      <p2 x="1060" y="1080"/>
+    </wire>
+    <wire>
+      <p1 x="1580" y="1080"/>
+      <p2 x="1680" y="1080"/>
+    </wire>
+    <wire>
+      <p1 x="500" y="1080"/>
+      <p2 x="580" y="1080"/>
+    </wire>
+    <wire>
       <p1 x="940" y="380"/>
-      <p2 x="1080" y="380"/>
+      <p2 x="1300" y="380"/>
+    </wire>
+    <wire>
+      <p1 x="380" y="380"/>
+      <p2 x="500" y="380"/>
+    </wire>
+    <wire>
+      <p1 x="980" y="1020"/>
+      <p2 x="1080" y="1020"/>
+    </wire>
+    <wire>
+      <p1 x="1580" y="1020"/>
+      <p2 x="1740" y="1020"/>
+    </wire>
+    <wire>
+      <p1 x="620" y="1020"/>
+      <p2 x="680" y="1020"/>
     </wire>
     <wire>
       <p1 x="960" y="220"/>
       <p2 x="960" y="260"/>
     </wire>
     <wire>
-      <p1 x="880" y="40"/>
-      <p2 x="880" y="180"/>
+      <p1 x="960" y="300"/>
+      <p2 x="960" y="340"/>
     </wire>
     <wire>
-      <p1 x="880" y="340"/>
-      <p2 x="880" y="440"/>
+      <p1 x="1600" y="280"/>
+      <p2 x="1600" y="480"/>
+    </wire>
+    <wire>
+      <p1 x="640" y="1040"/>
+      <p2 x="640" y="1200"/>
     </wire>
     <wire>
       <p1 x="900" y="80"/>
       <p2 x="900" y="200"/>
     </wire>
     <wire>
-      <p1 x="500" y="100"/>
-      <p2 x="500" y="180"/>
+      <p1 x="900" y="360"/>
+      <p2 x="900" y="480"/>
     </wire>
     <wire>
-      <p1 x="500" y="240"/>
-      <p2 x="500" y="260"/>
+      <p1 x="580" y="840"/>
+      <p2 x="580" y="960"/>
     </wire>
     <wire>
-      <p1 x="520" y="260"/>
-      <p2 x="520" y="300"/>
+      <p1 x="580" y="1000"/>
+      <p2 x="580" y="1080"/>
+    </wire>
+    <wire>
+      <p1 x="520" y="280"/>
+      <p2 x="520" y="440"/>
+    </wire>
+    <wire>
+      <p1 x="1800" y="960"/>
+      <p2 x="1800" y="1060"/>
+    </wire>
+    <wire>
+      <p1 x="1800" y="1200"/>
+      <p2 x="1800" y="1240"/>
+    </wire>
+    <wire>
+      <p1 x="460" y="80"/>
+      <p2 x="460" y="200"/>
+    </wire>
+    <wire>
+      <p1 x="460" y="240"/>
+      <p2 x="460" y="320"/>
+    </wire>
+    <wire>
+      <p1 x="1740" y="1020"/>
+      <p2 x="1740" y="1220"/>
+    </wire>
+    <wire>
+      <p1 x="1420" y="940"/>
+      <p2 x="1420" y="1100"/>
+    </wire>
+    <wire>
+      <p1 x="1680" y="200"/>
+      <p2 x="1680" y="300"/>
+    </wire>
+    <wire>
+      <p1 x="1680" y="440"/>
+      <p2 x="1680" y="480"/>
+    </wire>
+    <wire>
+      <p1 x="1680" y="1080"/>
+      <p2 x="1680" y="1280"/>
+    </wire>
+    <wire>
+      <p1 x="1040" y="880"/>
+      <p2 x="1040" y="980"/>
+    </wire>
+    <wire>
+      <p1 x="1620" y="260"/>
+      <p2 x="1620" y="460"/>
+    </wire>
+    <wire>
+      <p1 x="1300" y="180"/>
+      <p2 x="1300" y="380"/>
     </wire>
     <wire>
       <p1 x="920" y="120"/>
       <p2 x="920" y="220"/>
     </wire>
     <wire>
-      <p1 x="460" y="140"/>
-      <p2 x="460" y="200"/>
+      <p1 x="920" y="340"/>
+      <p2 x="920" y="420"/>
+    </wire>
+    <wire>
+      <p1 x="1560" y="320"/>
+      <p2 x="1560" y="520"/>
+    </wire>
+    <wire>
+      <p1 x="1820" y="980"/>
+      <p2 x="1820" y="1060"/>
+    </wire>
+    <wire>
+      <p1 x="1820" y="1200"/>
+      <p2 x="1820" y="1260"/>
+    </wire>
+    <wire>
+      <p1 x="1700" y="220"/>
+      <p2 x="1700" y="300"/>
+    </wire>
+    <wire>
+      <p1 x="1700" y="440"/>
+      <p2 x="1700" y="500"/>
+    </wire>
+    <wire>
+      <p1 x="1700" y="1060"/>
+      <p2 x="1700" y="1260"/>
+    </wire>
+    <wire>
+      <p1 x="1060" y="920"/>
+      <p2 x="1060" y="1000"/>
+    </wire>
+    <wire>
+      <p1 x="1060" y="1080"/>
+      <p2 x="1060" y="1180"/>
+    </wire>
+    <wire>
+      <p1 x="1000" y="800"/>
+      <p2 x="1000" y="940"/>
     </wire>
     <wire>
       <p1 x="940" y="160"/>
@@ -612,8 +1588,80 @@ end architecture mainBatalhaNaval;</string>
       <p2 x="940" y="380"/>
     </wire>
     <wire>
-      <p1 x="540" y="280"/>
-      <p2 x="540" y="360"/>
+      <p1 x="1580" y="300"/>
+      <p2 x="1580" y="500"/>
+    </wire>
+    <wire>
+      <p1 x="620" y="780"/>
+      <p2 x="620" y="940"/>
+    </wire>
+    <wire>
+      <p1 x="620" y="1020"/>
+      <p2 x="620" y="1140"/>
+    </wire>
+    <wire>
+      <p1 x="880" y="40"/>
+      <p2 x="880" y="180"/>
+    </wire>
+    <wire>
+      <p1 x="1840" y="1000"/>
+      <p2 x="1840" y="1060"/>
+    </wire>
+    <wire>
+      <p1 x="1840" y="1200"/>
+      <p2 x="1840" y="1280"/>
+    </wire>
+    <wire>
+      <p1 x="500" y="20"/>
+      <p2 x="500" y="180"/>
+    </wire>
+    <wire>
+      <p1 x="500" y="260"/>
+      <p2 x="500" y="380"/>
+    </wire>
+    <wire>
+      <p1 x="1780" y="940"/>
+      <p2 x="1780" y="1060"/>
+    </wire>
+    <wire>
+      <p1 x="1780" y="1200"/>
+      <p2 x="1780" y="1220"/>
+    </wire>
+    <wire>
+      <p1 x="1720" y="240"/>
+      <p2 x="1720" y="300"/>
+    </wire>
+    <wire>
+      <p1 x="1720" y="440"/>
+      <p2 x="1720" y="520"/>
+    </wire>
+    <wire>
+      <p1 x="1720" y="1040"/>
+      <p2 x="1720" y="1240"/>
+    </wire>
+    <wire>
+      <p1 x="1080" y="980"/>
+      <p2 x="1080" y="1020"/>
+    </wire>
+    <wire>
+      <p1 x="1080" y="1060"/>
+      <p2 x="1080" y="1100"/>
+    </wire>
+    <wire>
+      <p1 x="1660" y="180"/>
+      <p2 x="1660" y="300"/>
+    </wire>
+    <wire>
+      <p1 x="1660" y="440"/>
+      <p2 x="1660" y="460"/>
+    </wire>
+    <wire>
+      <p1 x="1020" y="840"/>
+      <p2 x="1020" y="960"/>
+    </wire>
+    <wire>
+      <p1 x="1020" y="1100"/>
+      <p2 x="1020" y="1240"/>
     </wire>
   </wires>
   <measurementOrdering/>
