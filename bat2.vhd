@@ -20,7 +20,6 @@ entity BatalhaNaval is
         led_2 : out std_logic;
         led_3a : out std_logic;
         led_3b : out std_logic;
-        led_disp : out std_logic;
         display : out std_logic_vector(3 downto 0);
         vitoria : out std_logic;
         derota  : out std_logic
@@ -31,7 +30,7 @@ entity BatalhaNaval is
 end entity BatalhaNaval;
 
 architecture mainBatalhaNaval of BatalhaNaval is
-        type Navio_Type is (navio_1,navio_2,navio_3a,navio_3b,disp);
+        type Navio_Type is (navio_1,navio_2,navio_3a,navio_3b);
         signal navio_atual: Navio_Type := navio_1;
     
          -- Sinais internos
@@ -41,7 +40,7 @@ architecture mainBatalhaNaval of BatalhaNaval is
     signal navio_3_pos1 :integer range 0 to 16;
     signal navio_3_pos2 :integer range 0 to 16;
     signal pos_alvo : integer range 0 to 15;
-    signal num_disparos : integer range 0 to 10:=6;
+    signal num_disparos : integer range 0 to 15:=10;
     signal num_vitorias : integer range 0 to 3;
     signal num_derotas : integer range 0 to 10;
 
@@ -64,8 +63,6 @@ architecture mainBatalhaNaval of BatalhaNaval is
                     navio_atual <= navio_3a;
                 elsif count = 4 then 
                     navio_atual <= navio_3b;
-                elsif count = 5 then 
-                    navio_atual <= disp;
                 end if;
             end if;
         end process;
@@ -137,18 +134,6 @@ architecture mainBatalhaNaval of BatalhaNaval is
                         led_3a <= '0';
                         led_3b <= '1';
                         navio_3_pos2 <= navio_pos;
-                    when disp =>
-                        led_1 <= '0';
-                        led_2 <= '0';
-                        led_3a <= '0';
-                        led_3b <= '0';
-                        led_disp <= '1';
-                    when others =>
-                        led_1 <= '0';
-                        led_2 <= '0';
-                        led_3a <= '0';
-                        led_3b <= '0';
-                        led_disp <= '1';
                 end case;
         end process;
 
@@ -268,6 +253,14 @@ architecture mainBatalhaNaval of BatalhaNaval is
                 display <= "0101";
             when 6 =>
                 display <= "0110";
+            when 7 =>
+                display <= "0111";
+            when 8 =>
+                display <= "1000";
+            when 9 =>
+                display <= "1001";
+            when 10 =>
+                display <= "1010";
             --when 11 =>
               --  display <= "1011";
             when others =>

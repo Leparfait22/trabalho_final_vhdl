@@ -21,7 +21,7 @@ begin
             estado_atual <= Andar_A;
         elsif key(0)'event and key(0) = '0' then
             case estado_atual is
-            when Andar_A =>
+            when Andar_A =>https://github.com/Leparfait22/trabalho_final_vhdl.git
                 if sw(9) = '0' and sw(8) = '0' then 
         
                         estado_atual <= Andar_A;
