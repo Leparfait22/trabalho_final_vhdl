@@ -46,9 +46,8 @@ architecture mainBatalhaNaval of BatalhaNaval is
         begin
             if key(1) = '0' then
                 navio_atual <= navio_1;
-                
-               -- num_disparos <= 6;
-                --num_vitorias <= 0;
+               -- num_disparos <= 0;
+               -- num_vitoras <= 0;
             elsif key(0)'event and key(0) = '0' then
                 count := count + 1;
                 if count = 1 then 
@@ -232,7 +231,7 @@ architecture mainBatalhaNaval of BatalhaNaval is
                             contador := contador + 1;
                             if contador = 2 then
                                 ledG(7) <= '0';
-                                num_disparos <= num_disparos - 1;
+                               -- num_disparos <= num_disparos - 1;
                                 num_vitorias <= num_vitorias + 1;
                             -- navio_3_pos1 <= 16;
                             -- navio_3_pos2 <= 16;
@@ -257,7 +256,6 @@ architecture mainBatalhaNaval of BatalhaNaval is
                 HEX0(4)<='0';
                 HEX0(5)<='0';
                 HEX0(6)<='1';
-                --ledR(9) <= '1';
             when 1 =>
                 HEX0(0)<='1';
                 HEX0(1)<='0';
@@ -348,7 +346,7 @@ architecture mainBatalhaNaval of BatalhaNaval is
                 HEX3(4)<='1';
                 HEX3(5)<='1';
                 HEX3(6)<='0';
-               -- ledG(0) <= '1';
+       
             when others =>
                 HEX3(0)<='0';
                 HEX3(1)<='0';
@@ -376,21 +374,17 @@ architecture mainBatalhaNaval of BatalhaNaval is
         HEX2(6)<='1';
         
         -----------------------------------------------------------------------------
-        if num_vitorias = 3 then 
-            ledG(0) <= '1';
-        elsif num_disparos = 0 and num_vitorias < 3 then
-            ledR(9) <= '1';
-        end if;
+        
     end process;
 
-   -- process(num_disparos,num_vitorias)
-    --    begin
-     --       if num_vitorias = 3 then 
-      --          ledG(0) <= '0';
-     --       elsif num_disparos = 0 and num_vitorias < 3 then
-      --          ledR(9) <= '0';
-     --       end if;
- --   end process;
+    process(num_disparos,num_vitorias)
+        begin
+            if num_vitorias = 3 then 
+                ledG(0) <= '0';
+            elsif num_disparos = 0 and num_vitorias < 3 then
+                ledR(9) <= '0';
+            end if;
+    end process;
 
 end architecture mainBatalhaNaval;
 
